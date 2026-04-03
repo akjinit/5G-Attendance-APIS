@@ -19,17 +19,20 @@ router.get('/', async (req, res) => {
             }
         });
         const users = await userModel.find();
+        // console.log(users);
+        // console.log(attendance);
         //{name : Akshat , model_id : 123 , date : 2026-04-03, time : 10:00 AM, status : present}
         const attendanceData = users.map(user => {
-            const attendance = attendance.find(att => att.userId.toString() === user._id.toString());
+            const userAttendance = attendance.find(att => att.userId.toString() === user._id.toString());
             return {
                 name: user.name,
                 model_id: user.model_id,
-                date: attendance ? attendance.date.toDateString() : "Not Present",
-                time: attendance ? attendance.date.getHours() + ":" + attendance.date.getMinutes() : "Not Present",
-                status: attendance ? "Present" : "Not Present"
+                date: userAttendance ? userAttendance.date.toDateString() : "Not Present",
+                time: userAttendance ? userAttendance.date.getHours() + ":" + userAttendance.date.getMinutes() : "Not Present",
+                status: userAttendance ? "Present" : "Not Present"
             };
         });
+        console.log(attendanceData);
         res.status(200).json({
             success: true,
             message: "Attendance fetched successfully",
