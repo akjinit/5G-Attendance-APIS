@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 function App() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ function App() {
     setLoading(true);
     setFetchError(null);
     try {
-      const response = await fetch('/api/get-todays-attendance');
+      const response = await fetch(`${API_BASE_URL}/api/get-todays-attendance`);
       const data = await response.json();
       if (data.success) {
         setAttendanceData(data.attendanceData || []);
@@ -25,6 +27,7 @@ function App() {
         setFetchError(data.message || 'Error fetching attendance');
       }
     } catch (error) {
+      console.error('Fetch error:', error);
       setFetchError('Network error. Is the backend running?');
     }
     setLoading(false);
@@ -39,7 +42,7 @@ function App() {
     setUserFormStatus({ type: '', message: '' });
     
     try {
-      const response = await fetch('/api/add-user', {
+      const response = await fetch(`${API_BASE_URL}/api/add-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userForm)
@@ -63,7 +66,7 @@ function App() {
     setAttendanceFormStatus({ type: '', message: '' });
     
     try {
-      const response = await fetch('/api/add-attendance', {
+      const response = await fetch(`${API_BASE_URL}/api/add-attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

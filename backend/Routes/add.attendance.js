@@ -15,7 +15,7 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const attendance = attendanceModel.create({
+        const attendance = await attendanceModel.create({
             userId: user._id,
             date
         });
