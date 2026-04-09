@@ -22,7 +22,37 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/api/get-todays-attendance`);
       const data = await response.json();
       if (data.success) {
+        const arr = data.attendanceData || [];
+        arr.forEach(element => {
+          if (element.time == "Not Present") {
+            element.time = "Not Present";
+          } else {
+            const time = element.time.split(":"); // "12:30"
+
+            let hours = parseInt(time[0]);
+            let minutes = parseInt(time[1]);
+
+            // Add IST offset
+            hours += 5;
+            minutes += 30;
+
+            // Handle minute overflow
+            if (minutes >= 60) {
+              hours += Math.floor(minutes / 60);
+              minutes = minutes % 60;
+            }
+
+            // Handle hour overflow (24-hour format)
+            hours = hours % 24;
+
+            // Format back to HH:MM
+            const istTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            element.time = istTime;
+          }
+        });
         setAttendanceData(data.attendanceData || []);
+        console.log('Fetched attendance data:', data.attendanceData);
+
       } else {
         setFetchError(data.message || 'Error fetching attendance');
       }
@@ -40,7 +70,7 @@ function App() {
   const handleAddUser = async (e) => {
     e.preventDefault();
     setUserFormStatus({ type: '', message: '' });
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/add-user`, {
         method: 'POST',
@@ -48,7 +78,7 @@ function App() {
         body: JSON.stringify(userForm)
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setUserFormStatus({ type: 'success', message: 'User added successfully!' });
         setUserForm({ name: '', model_id: '' });
@@ -64,18 +94,21 @@ function App() {
   const handleMarkAttendance = async (e) => {
     e.preventDefault();
     setAttendanceFormStatus({ type: '', message: '' });
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/add-attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           model_id: attendanceForm.model_id,
-          date: new Date().toISOString()
+          date: new Date().toLocaleString()
         })
       });
+
+
       const data = await response.json();
-      
+
+
       if (data.success) {
         setAttendanceFormStatus({ type: 'success', message: 'Attendance marked!' });
         setAttendanceForm({ model_id: '' });
@@ -103,7 +136,7 @@ function App() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
               Add New User
             </h2>
-            
+
             {userFormStatus.message && (
               <div className={`alert ${userFormStatus.type}`}>
                 {userFormStatus.message}
@@ -113,24 +146,24 @@ function App() {
             <form onSubmit={handleAddUser}>
               <div className="form-group">
                 <label>Full Name</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
+                <input
+                  type="text"
+                  className="form-input"
                   placeholder="e.g. Jane Doe"
                   value={userForm.name}
-                  onChange={(e) => setUserForm({...userForm, name: e.target.value})}
-                  required 
+                  onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                  required
                 />
               </div>
               <div className="form-group">
                 <label>Model ID (Unique)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
+                <input
+                  type="text"
+                  className="form-input"
                   placeholder="e.g. 1001"
                   value={userForm.model_id}
-                  onChange={(e) => setUserForm({...userForm, model_id: e.target.value})}
-                  required 
+                  onChange={(e) => setUserForm({ ...userForm, model_id: e.target.value })}
+                  required
                 />
               </div>
               <button type="submit" className="primary-button">Register User</button>
@@ -153,13 +186,13 @@ function App() {
             <form onSubmit={handleMarkAttendance}>
               <div className="form-group">
                 <label>Model ID</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
+                <input
+                  type="text"
+                  className="form-input"
                   placeholder="Enter Model ID"
                   value={attendanceForm.model_id}
-                  onChange={(e) => setAttendanceForm({...attendanceForm, model_id: e.target.value})}
-                  required 
+                  onChange={(e) => setAttendanceForm({ ...attendanceForm, model_id: e.target.value })}
+                  required
                 />
               </div>
               <button type="submit" className="primary-button">Mark Present</button>
@@ -171,7 +204,7 @@ function App() {
         <div className="glass-panel">
           <div className="dashboard-actions">
             <h2 className="panel-title" style={{ marginBottom: 0 }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px'}}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               Today's Attendance
             </h2>
             <button className="refresh-button" onClick={fetchAttendance} disabled={loading}>
@@ -181,7 +214,7 @@ function App() {
           </div>
 
           {fetchError && (
-             <div className="alert error">{fetchError}</div>
+            <div className="alert error">{fetchError}</div>
           )}
 
           <div className="table-container">
@@ -220,8 +253,8 @@ function App() {
           </div>
         </div>
       </div>
-{/* extra global style for spinner just in case */}
-<style>{`
+      {/* extra global style for spinner just in case */}
+      <style>{`
 .spinning { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 `}</style>
